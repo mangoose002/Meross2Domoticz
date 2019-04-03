@@ -6,7 +6,7 @@
 'use strict';
 
 const mqtt        = require('mqtt')
-const MerossCloud = require('meross-cloud');
+const MerossCloud = require('../index.js');
 const request     = require('request');
 const options     = require("./config.json");
 
@@ -114,26 +114,27 @@ client.on('error',function(){
 });
 
 setInterval(function(){
-    console.log("Updating power consumption");
-    devices.forEach(function(element){
-        element.getControlElectricity((err, res) => {
-                request(base_url + "/json.htm?type=devices&filter=all&used=true&order=Name",function(err, result, body){
-                    if (err) { return console.log(err); }
-                    var domodevices = JSON.parse(body);
-                    var dev = domodevices.result.filter( ob => { return (ob.Description === element.dev.uuid && ob.Type === "General") } );
-                    if(Array.isArray(dev)){
-                        dev = dev.pop();
-                        if(dev){
-                            var msg = {
-                                "idx": parseInt(dev.idx),
-                                "nvalue": 0,
-                                "svalue": "" + (parseInt(res.electricity.power)/1000.0) + ";0"
-
-                            };
-                            client.publish('domoticz/in', JSON.stringify(msg));
-                        }
+    var d = new Date();
+    console.log(d.toISOString() + " -- Updating power consumption");
+    request(base_url + "/json.htm?type=devices&filter=all&used=true&order=Name",function(err, result, body){
+        if (err) { return console.log(err); }
+        var domodevices = JSON.parse(body); //We get all the domoticz devices
+        devices.forEach(function(element){
+            element.getControlElectricity((err, res) => {
+                if (err) { return console.log(err); }
+                var dev = domodevices.result.filter( ob => { return (ob.Description === element.dev.uuid && ob.Type === "General") } );
+                if(Array.isArray(dev)){
+                    dev = dev.pop();
+                    if(dev){
+                        var msg = {
+                            "idx": parseInt(dev.idx),
+                            "nvalue": 0,
+                            "svalue": "" + (parseInt(res.electricity.power)/1000.0) + ";0"
+                        };
+                        client.publish('domoticz/in', JSON.stringify(msg));
                     }
-                });
+                }
+            });
         });
     });
 }, 60000);
