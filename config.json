@@ -1,0 +1,14 @@
+{
+    "meross": {
+        "email": "xxxxxx",
+        "password": "xxxxxx"
+    },
+    "domoticz": {
+        "server": "localhost",
+        "port": 8080
+    },
+    "mqtt": {
+        "server": "localhost",
+        "port": 1883
+    }
+}
