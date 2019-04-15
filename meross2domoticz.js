@@ -6,7 +6,7 @@
 'use strict';
 
 const mqtt        = require('mqtt')
-const MerossCloud = require('../index.js');
+const MerossCloud = require('meross-cloud');
 const request     = require('request');
 const options     = require("./config.json");
 
