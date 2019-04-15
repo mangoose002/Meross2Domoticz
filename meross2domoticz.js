@@ -41,7 +41,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
         else
             nvalue = payload.togglex.onoff;
 
-        request(base_url + "/json.htm?type=devices&filter=all&used=true&order=Name",function(err, res, body){
+        request(base_url + "/json.htm?type=devices&filter=light&used=true&order=Name",function(err, res, body){
               if (err) { return console.log(err); }
               var domodevices = JSON.parse(body);
               var dev = domodevices.result.filter( ob => { return (ob.Description == deviceId && ob.SwitchType == "On/Off") } ); 
@@ -116,7 +116,7 @@ client.on('error',function(){
 setInterval(function(){
     var d = new Date();
     console.log(d.toISOString() + " -- Updating power consumption");
-    request(base_url + "/json.htm?type=devices&filter=all&used=true&order=Name",function(err, result, body){
+    request(base_url + "/json.htm?type=devices&filter=utility&used=true&order=Name",function(err, result, body){
         if (err) { return console.log(err); }
         var domodevices = JSON.parse(body); //We get all the domoticz devices
         devices.forEach(function(element){
