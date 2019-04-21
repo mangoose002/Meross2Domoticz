@@ -110,7 +110,12 @@ client.on('connect', function () {
                     console.log(dev)
                 }
                 console.log("Sending state to Meross");
-                dev.controlToggleX(0,obj.nvalue);
+                try{
+                    dev.controlToggleX(0,obj.nvalue);
+                }
+                catch(e){
+                    dev.controlToggle(obj.nvalue);
+                }
             }
         });
     });
@@ -126,21 +131,23 @@ setInterval(function(){
         if (err) { return console.log(err); }
         var domodevices = JSON.parse(body); //We get all the domoticz devices
         devices.forEach(function(element){
-            element.getControlElectricity((err, res) => {
-                if (err) { return console.log(err); }
-                var dev = domodevices.result.filter( ob => { return (ob.Description === element.dev.uuid && ob.Type === "General") } );
-                if(dev && Array.isArray(dev) && dev.length > 0){
-                    dev = dev.pop();
-                    if(dev){
-                        var msg = {
-                            "idx": parseInt(dev.idx),
-                            "nvalue": 0,
-                            "svalue": "" + (parseInt(res.electricity.power)/1000.0) + ";0"
-                        };
-                        client.publish('domoticz/in', JSON.stringify(msg));
+            if(element.dev.deviceType == "mss310"){
+                element.getControlElectricity((err, res) => {
+                    if (err) { return console.log(err); }
+                    var dev = domodevices.result.filter( ob => { return (ob.Description === element.dev.uuid && ob.Type === "General") } );
+                    if(dev && Array.isArray(dev) && dev.length > 0){
+                        dev = dev.pop();
+                        if(dev){
+                            var msg = {
+                                "idx": parseInt(dev.idx),
+                                "nvalue": 0,
+                                "svalue": "" + (parseInt(res.electricity.power)/1000.0) + ";0"
+                            };
+                            client.publish('domoticz/in', JSON.stringify(msg));
+                        }
                     }
-                }
-            });
+                });
+            }
         });
     });
 }, 60000);
