@@ -9,6 +9,7 @@ const mqtt        = require('mqtt')
 const MerossCloud = require('meross-cloud');
 const request     = require('request');
 const options     = require("./config.json");
+const debug       = false;
 
 var devices = Array();
 
@@ -20,6 +21,7 @@ const base_url = "http://" + options.domoticz.server + ":" + options.domoticz.po
 meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
     device.on('connected', () => {
         devices.push(device);
+        console.log(device.dev.uuid + " (" + device.dev.devName + ") connected");
     });
 
     device.on('close', (error) => {
@@ -46,8 +48,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
               var domodevices = JSON.parse(body);
               var dev = domodevices.result.filter( ob => { return (ob.Description == deviceId && ob.SwitchType == "On/Off") } ); 
               
-              
-              if(Array.isArray(dev)){
+              if(dev && Array.isArray(dev) && dev.length > 0){
                 dev = dev.pop();
                 var status = nvalue ? "On" : "Off";
                 if(dev && dev.Status != status){
@@ -68,7 +69,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
 });
 
 meross.on('connected', (deviceId) => {
-    console.log(deviceId + ' connected');
+    //console.log(deviceId + ' connected');
 });
 
 meross.on('close', (deviceId, error) => {
@@ -102,9 +103,14 @@ client.on('connect', function () {
             var obj = JSON.parse(message);
             var dev = devices.filter( ob => { return (ob.dev.uuid === obj.description && obj.switchType === "On/Off") });
 
-            if(dev.length > 0){
+            if(dev && Array.isArray(dev) && dev.length > 0){
+                dev = dev.pop();
+                if(debug){
+                    console.log(obj)
+                    console.log(dev)
+                }
                 console.log("Sending state to Meross");
-                dev.pop().controlToggleX(0,obj.nvalue);
+                dev.controlToggleX(0,obj.nvalue);
             }
         });
     });
@@ -123,7 +129,7 @@ setInterval(function(){
             element.getControlElectricity((err, res) => {
                 if (err) { return console.log(err); }
                 var dev = domodevices.result.filter( ob => { return (ob.Description === element.dev.uuid && ob.Type === "General") } );
-                if(Array.isArray(dev)){
+                if(dev && Array.isArray(dev) && dev.length > 0){
                     dev = dev.pop();
                     if(dev){
                         var msg = {
