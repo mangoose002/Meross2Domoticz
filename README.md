@@ -7,9 +7,9 @@ It is based on the Meross-Cloud work by Apollon77
 https://github.com/Apollon77/meross-cloud
 
 ## Setup in Domoticz
-The UUID of the Plug must be set in the derscription of the Domoticz element (which as a link between Domoticz and Meross)<br />
-For the control, it needs to be a 'On/Off' type.<br />
-Energy devices are automaticaly created using the name provided in the Meross config.
+No setup needed. Everything is created by the script in Domoticz (if new devices is authorized)<br />
+Switch devices are automaticaly created using the name provided in the Meross config.<br />
+Energy devices are automaticaly created using the name provided in the Meross config.<br />
 
 ## Todo
 Update code to work with MSS210 & MSS425.<br />
