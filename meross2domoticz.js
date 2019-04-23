@@ -41,7 +41,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                                 request(base_url + "/json.htm?type=setused&idx="+ response.idx +"&description=" + device.dev.uuid + "&used=true&EnergyMeterMode=1&name=" + device.dev.devName ,function(err, result, body) {
                                     var response2 = JSON.parse(body);
                                     if(response2.status === "OK"){
-                                        console.log("\tDevice " + device.dev.devName + " created in Domoticz with id " + response.idx);
+                                        console.log("\tEnergy Device " + device.dev.devName + " created in Domoticz with id " + response.idx);
                                     }
                                 });
                             }
