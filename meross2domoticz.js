@@ -47,31 +47,8 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                             }
                         });
                     } else {
-                        console.log("\tEnergy Device " +  device.dev.devName + " already exists in Domoticz");
+                        console.log("\tDevice " +  device.dev.devName + " already exists in Domoticz");
                     }
-
-                    var dev = domodevices.result.filter( ob => { return (  ob.Description === device.dev.uuid && ob.Type === "Light/Switch" && ob.SubType === "Switch")  } );
-                    if(dev && Array.isArray(dev) && dev.length == 0){
-                        //No device found, we will create one
-                        
-                        request(base_url + "/json.htm?type=createdevice&idx=29&devicetype=244&devicesubtype=73&sensorname=" + device.dev.devName,function(err, result, body) {
-                            var response = JSON.parse(body);
-                            if(response.status === "OK"){
-                                request(base_url + "/json.htm?type=setused&idx="+ response.idx +"&description=" + device.dev.uuid + "&used=true&name=" + device.dev.devName ,function(err, result, body) {
-                                    var response2 = JSON.parse(body);
-                                    if(response2.status === "OK"){
-                                        console.log("\tSwitch Device " + device.dev.devName + " created in Domoticz with id " + response.idx);
-                                    }
-
-                                });
-
-                            }
-                        });
-                    } else {
-                        console.log("\tSwitch Device " +  device.dev.devName + " already exists in Domoticz");
-                    }
-
-
                 }
 
                 //We will try to create the switch device
