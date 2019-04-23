@@ -9,7 +9,9 @@ const mqtt        = require('mqtt')
 const MerossCloud = require('meross-cloud');
 const request     = require('request');
 const options     = require("./config.json");
+
 const debug       = false;
+const autocreate  = true; 
 
 var devices = Array();
 
@@ -22,18 +24,54 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
     device.on('connected', () => {
         devices.push(device);
         console.log(device.dev.uuid + " (" + device.dev.devName + ") connected");
+        if(autocreate){
+            //We will try to autocreate the devices if not present in the Domoticz configuration
+            request(base_url + "/json.htm?type=devices&filter=all&used=true&order=Name",function(err, result, body){ //We get all devices
+                if (err) { return console.log(err); }
+                var domodevices = JSON.parse(body); //We get all the domoticz devices
+                if(device.dev.deviceType == "mss310"){
+                //We will try to create the energy device
+                    var dev = domodevices.result.filter( ob => { return (  ob.Description === device.dev.uuid && ob.Type === "General" && ob.SubType === "kWh")  } );
+                    if(dev && Array.isArray(dev) && dev.length == 0){
+                        //No device found, we will create one.
+
+                        request(base_url + "/json.htm?type=createdevice&idx=29&sensorname=" + device.dev.devName+ "&devicetype=243&devicesubtype=29",function(err, result, body) {
+                            var response = JSON.parse(body);
+                            if(response.status === "OK"){
+                                request(base_url + "/json.htm?type=setused&idx="+ response.idx +"&description=" + device.dev.uuid + "&used=true&EnergyMeterMode=1&name=" + device.dev.devName ,function(err, result, body) {
+                                    var response2 = JSON.parse(body);
+                                    if(response2.status === "OK"){
+                                        console.log("\tDevice " + device.dev.devName + " created in Domoticz with id " + response.idx);
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        console.log("\tDevice " +  device.dev.devName + " already exists in Domoticz");
+                    }
+                }
+
+                //We will try to create the switch device
+           });
+        }
     });
 
     device.on('close', (error) => {
-        console.log('DEV: ' + deviceId + ' closed: ' + error);
+        if(debug){
+            console.log('DEV: ' + deviceId + ' closed: ' + error);
+        }
     });
 
     device.on('error', (error) => {
-        console.log('DEV: ' + deviceId + ' error: ' + error);
+        if(debug){
+            console.log('DEV: ' + deviceId + ' error: ' + error);
+        }
     });
 
     device.on('reconnect', () => {
-        console.log('DEV: ' + deviceId + ' reconnected');
+        if(debug){
+            console.log('DEV: ' + deviceId + ' reconnected');
+        }
     });
 
     device.on('data', (namespace, payload) => {
@@ -69,29 +107,41 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
 });
 
 meross.on('connected', (deviceId) => {
-    //console.log(deviceId + ' connected');
+    if(debug){
+        console.log(deviceId + ' connected');
+    }
 });
 
 meross.on('close', (deviceId, error) => {
-    console.log(deviceId + ' closed: ' + error);
+    if(debug){
+        console.log(deviceId + ' closed: ' + error);
+    }
 });
 
 meross.on('error', (deviceId, error) => {
-    console.log(deviceId + ' error: ' + error);
+    if(debug){
+        console.log(deviceId + ' error: ' + error);
+    }
 });
 
 meross.on('reconnect', (deviceId) => {
-    console.log(deviceId + ' reconnected');
+    if(debug){
+        console.log(deviceId + ' reconnected');
+    }
 });
 
 meross.on('data', (deviceId, payload) => {
-    console.log(deviceId + ' data: ' + JSON.stringify(payload));
+    if(debug){
+        console.log(deviceId + ' data: ' + JSON.stringify(payload));
+    }
     
 });
 
 meross.connect((error) => {
     if(error){
-        console.log('connect error: ' + error);
+        if(debug){
+            console.log('connect error: ' + error);
+        }
         meross.connect((error) => { });
     };
 });
