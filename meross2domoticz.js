@@ -35,7 +35,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                     if(dev && Array.isArray(dev) && dev.length == 0){
                         //No device found, we will create one.
 
-                        request(base_url + "/json.htm?type=createdevice&idx=29&sensorname=" + device.dev.devName+ "&devicetype=243&devicesubtype=29",function(err, result, body) {
+                        request(base_url + "/json.htm?type=createdevice&idx=2&sensorname=" + device.dev.devName+ "&devicetype=243&devicesubtype=29",function(err, result, body) {
                             var response = JSON.parse(body);
                             if(response.status === "OK"){
                                 request(base_url + "/json.htm?type=setused&idx="+ response.idx +"&description=" + device.dev.uuid + "&used=true&EnergyMeterMode=1&name=" + device.dev.devName ,function(err, result, body) {
@@ -47,11 +47,29 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                             }
                         });
                     } else {
-                        console.log("\tDevice " +  device.dev.devName + " already exists in Domoticz");
+                        console.log("\tEnergy Device " +  device.dev.devName + " already exists in Domoticz");
                     }
-                }
 
                 //We will try to create the switch device
+                    var dev = domodevices.result.filter( ob => { return (  ob.Description === device.dev.uuid && ob.Type === "Light/Switch" && ob.SubType === "Switch")  } );
+                    if(dev && Array.isArray(dev) && dev.length == 0){
+                        //No device found, we will create one
+                        
+                        request(base_url + "/json.htm?type=createdevice&idx=2&devicetype=244&devicesubtype=73&sensorname=" + device.dev.devName,function(err, result, body) {
+                            var response = JSON.parse(body);
+                            if(response.status === "OK"){
+                                request(base_url + "/json.htm?type=setused&idx="+ response.idx +"&description=" + device.dev.uuid + "&used=true&name=" + device.dev.devName ,function(err, result, body) {
+                                    var response2 = JSON.parse(body);
+                                    if(response2.status === "OK"){
+                                        console.log("\tSwitch Device " + device.dev.devName + " created in Domoticz with id " + response.idx);
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        console.log("\tSwitch Device " +  device.dev.devName + " already exists in Domoticz");
+                    }
+                }
            });
         }
     });
@@ -84,7 +102,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
         request(base_url + "/json.htm?type=devices&filter=light&used=true&order=Name",function(err, res, body){
               if (err) { return console.log(err); }
               var domodevices = JSON.parse(body);
-              var dev = domodevices.result.filter( ob => { return (ob.Description == deviceId && ob.SwitchType == "On/Off") } ); 
+              var dev = domodevices.result.filter( ob => { return (ob.description == deviceId && ob.Type === "Light/Switch" && ob.SubType === "Switch") } ); 
               
               if(dev && Array.isArray(dev) && dev.length > 0){
                 dev = dev.pop();
@@ -151,7 +169,7 @@ client.on('connect', function () {
         client.on('message', function(topic, message, packet) {
         // message is Buffer
             var obj = JSON.parse(message);
-            var dev = devices.filter( ob => { return (ob.dev.uuid === obj.description && obj.switchType === "On/Off") });
+            var dev = devices.filter( ob => { return (ob.dev.uuid === obj.description && obj.dtype === "Light/Switch" && obj.stype === "Switch") });
 
             if(dev && Array.isArray(dev) && dev.length > 0){
                 dev = dev.pop();
