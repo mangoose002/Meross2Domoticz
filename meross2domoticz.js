@@ -5,20 +5,42 @@
 /* jslint esversion: 6 */
 'use strict';
 
-const mqtt        = require('mqtt')
-const MerossCloud = require('meross-cloud');
-const request     = require('request');
-const options     = require("./config.json");
+const mqtt          = require('mqtt')
+const MerossCloud   = require('meross-cloud');
+const request       = require('request');
+const options       = require("./config.json");
+const debug         = false;
 
-const debug       = false;
-const autocreate  = true; 
-
-var devices = Array();
-
+var autocreate      = true; 
+var devices         = Array();
+var DummyHardwareId = -1;
 
 const meross = new MerossCloud(options.meross);
 const client  = mqtt.connect('mqtt://' + options.mqtt.server);
 const base_url = "http://" + options.domoticz.server + ":" + options.domoticz.port;
+
+
+//We will try to find the hardware id for a Dummy hardware in order to autocreate devices
+request(base_url + "/json.htm?type=hardware",function(err, result, body){ //We get all hardware
+    if (err) { return console.log(err); }
+    var domohardware = JSON.parse(body); //We get all hardware
+    var hardware = domohardware.result.filter( ob => { return ob.Type == 15; });
+
+    if(hardware && Array.isArray(hardware) && hardware.length > 0){
+        hardware = hardware.pop();
+        DummyHardwareId = hardware.idx;
+        if(debug){
+            console.log("Dummy hardware found (" + DummyHardwareId + "). Autocreate enabled");
+        }
+
+    } else {
+        autocreate = false;
+        if(debug){
+            console.log("No dummy hardware found. Autocreate disabled");
+        }
+    }
+});
+
 
 meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
     device.on('connected', () => {
@@ -35,7 +57,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                     if(dev && Array.isArray(dev) && dev.length == 0){
                         //No device found, we will create one.
 
-                        request(base_url + "/json.htm?type=createdevice&idx=2&sensorname=" + device.dev.devName+ "&devicetype=243&devicesubtype=29",function(err, result, body) {
+                        request(base_url + "/json.htm?type=createdevice&idx=" + DummyHardwareId + "sensorname=" + device.dev.devName+ "&devicetype=243&devicesubtype=29",function(err, result, body) {
                             var response = JSON.parse(body);
                             if(response.status === "OK"){
                                 request(base_url + "/json.htm?type=setused&idx="+ response.idx +"&description=" + device.dev.uuid + "&used=true&EnergyMeterMode=1&name=" + device.dev.devName ,function(err, result, body) {
@@ -55,7 +77,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                     if(dev && Array.isArray(dev) && dev.length == 0){
                         //No device found, we will create one
                         
-                        request(base_url + "/json.htm?type=createdevice&idx=2&devicetype=244&devicesubtype=73&sensorname=" + device.dev.devName,function(err, result, body) {
+                        request(base_url + "/json.htm?type=createdevice&idx=" + DummyHardwareId + "&devicetype=244&devicesubtype=73&sensorname=" + device.dev.devName,function(err, result, body) {
                             var response = JSON.parse(body);
                             if(response.status === "OK"){
                                 request(base_url + "/json.htm?type=setused&idx="+ response.idx +"&description=" + device.dev.uuid + "&used=true&name=" + device.dev.devName ,function(err, result, body) {
