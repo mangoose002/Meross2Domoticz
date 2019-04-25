@@ -10,6 +10,8 @@ https://github.com/Apollon77/meross-cloud
 No setup needed. Everything is created by the script in Domoticz (if new devices is authorized)<br />
 Switch devices are automaticaly created using the name provided in the Meross config.<br />
 Energy devices are automaticaly created using the name provided in the Meross config.<br />
+<br />
+Just need to complete the config.json file with your credentials and MQTT and Domoticz IP/ports <br />
 
 ## Todo
 Update code to work with MSS210 & MSS425.<br />
