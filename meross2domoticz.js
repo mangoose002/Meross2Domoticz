@@ -217,7 +217,7 @@ client.on('connect', function () {
             var channel = 0;
 
             var obj = JSON.parse(message);
-            var dev = devices.filter( ob => { return (obj.description.indexOf(ob.dev.uuid)!=-1 && obj.dtype === "Light/Switch" && obj.stype === "Switch") });
+            var dev = devices.filter( ob => { return (String(obj.description).indexOf(ob.dev.uuid)!=-1 && obj.dtype === "Light/Switch" && obj.stype === "Switch") });
 
             if(dev && Array.isArray(dev) && dev.length > 0){
                 var settings = obj.description.split("|");
@@ -250,7 +250,7 @@ setInterval(function(){
             if(element.dev.deviceType == "mss310"){
                 element.getControlElectricity((err, res) => {
                     if (err) { return console.log(err); }
-                    var dev = domodevices.result.filter( ob => { return (ob.Description.indexOf(element.dev.uuid)!=-1 && ob.Type === "General") } );
+                    var dev = domodevices.result.filter( ob => { return (ob.Description == element.dev.uuid && ob.Type === "General") } );
                     if(dev && Array.isArray(dev) && dev.length > 0){
                         dev = dev.pop();
                         if(dev){
