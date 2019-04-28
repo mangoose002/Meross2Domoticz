@@ -18,5 +18,5 @@ P.S. I am not able to test with the MSS210. I assumed it was working exactly the
 the power measurement. I hope it works this way
 
 P.S. If you were using this script before it supports MSS425. You have two options:<br />
-1 - Delete the switch you previously created and let the script recreate them
-2 - Edit the description of you switches and add |0 at the end of the uuid. It will tell the system to use the channel 0
+1 - Delete the switch you previously created and let the script recreate them<br />
+2 - Edit the description of you switches and add |0 at the end of the uuid. It will tell the system to use the channel 0<br />
