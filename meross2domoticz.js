@@ -140,6 +140,9 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
             channel = payload.togglex[0].channel;
             nvalue  = payload.togglex[0].onoff;
         } else {
+            if(payload.togglex == undefined){
+                return;
+            }
             channel = payload.togglex.channel
             nvalue  = payload.togglex.onoff;
         }
