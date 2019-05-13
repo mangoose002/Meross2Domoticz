@@ -19,6 +19,13 @@ const meross = new MerossCloud(options.meross);
 const client  = mqtt.connect('mqtt://' + options.mqtt.server);
 const base_url = "http://" + options.domoticz.server + ":" + options.domoticz.port;
 
+function LogToConsole(dbg,message){
+    var d = new Date();
+    if(dbg){
+        console.log(d.toISOString() + " -- " + message);
+    }
+}
+
 function FilterDomoDevices(obj,uuid,type,stype){
     return (obj.Description === uuid && obj.Type === type && obj.SubType === stype);
 }
@@ -36,9 +43,9 @@ function CreateDomoDevice(name,uuid,type,stype,channel){
                 var response2 = JSON.parse(body);
                 if(response2.status === "OK"){
                     if(type == 243){
-                        console.log("\tEnergy Device " + name + " created in Domoticz with id " + response.idx);
+                        LogToConsole(true,"\tEnergy Device " + name + " created in Domoticz with id " + response.idx);
                     } else {
-                        console.log("\tSwitch Device " + name + " created in Domoticz with id " + response.idx);
+                        LogToConsole(true,"\tSwitch Device " + name + " created in Domoticz with id " + response.idx);
                     }
                 }
             });
@@ -55,22 +62,18 @@ request(base_url + "/json.htm?type=hardware",function(err, result, body){ //We g
     if(hardware && Array.isArray(hardware) && hardware.length > 0){
         hardware = hardware.pop();
         DummyHardwareId = hardware.idx;
-        if(debug){
-            console.log("Dummy hardware found (" + DummyHardwareId + "). Autocreate enabled");
-        }
+        LogToConsole(debug,"Dummy hardware found (" + DummyHardwareId + "). Autocreate enabled");
 
     } else {
         autocreate = false;
-        if(debug){
-            console.log("No dummy hardware found. Autocreate disabled");
-        }
+        LogToConsole(debug,"No dummy hardware found. Autocreate disabled");
     }
 });
 
 meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
     device.on('connected', () => {
         devices.push(device);
-        console.log(device.dev.uuid + " (" + device.dev.devName + ") connected. It is a " + device.dev.deviceType);
+        LogToConsole(true,device.dev.uuid + " (" + device.dev.devName + ") connected. It is a " + device.dev.deviceType);
         if(autocreate){
             //We will try to autocreate the devices if not present in the Domoticz configuration
             request(base_url + "/json.htm?type=devices&filter=all&used=true&order=Name",function(err, result, body){ //We get all devices
@@ -83,7 +86,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                         //No device found, we will create one.
                         CreateDomoDevice(device.dev.devName,device.dev.uuid,243,29);
                     } else {
-                        console.log("\tEnergy Device " +  device.dev.devName + " already exists in Domoticz");
+                        LogToConsole(true,"\tEnergy Device " +  device.dev.devName + " already exists in Domoticz");
                     }
                 }
 
@@ -94,7 +97,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                         //No device found, we will create one
                         CreateDomoDevice(device.dev.devName,device.dev.uuid,244,73,0);
                     } else {
-                        console.log("\tSwitch Device " +  device.dev.devName + " already exists in Domoticz");
+                        LogToConsole(true,"\tSwitch Device " +  device.dev.devName + " already exists in Domoticz");
                     }
                 }
 
@@ -106,7 +109,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                            //No device found, we will create one
                             CreateDomoDevice(device.dev.channels[i].devName,device.dev.uuid,244,73,i);
                          } else {
-                            console.log("\tSwitch Device " +  device.dev.channels[i].devName + " already exists in Domoticz");
+                            LogToConsole(true,"\tSwitch Device " +  device.dev.channels[i].devName + " already exists in Domoticz");
                          }
                      }
                 }
@@ -115,21 +118,15 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
     });
 
     device.on('close', (error) => {
-        if(debug){
-            console.log('DEV: ' + deviceId + ' closed: ' + error);
-        }
+        LogToConsole(debug,'DEV: ' + deviceId + ' closed: ' + error);
     });
 
     device.on('error', (error) => {
-        if(debug){
-            console.log('DEV: ' + deviceId + ' error: ' + error);
-        }
+        LogToConsole(debug,'DEV: ' + deviceId + ' error: ' + error);
     });
 
     device.on('reconnect', () => {
-        if(debug){
-            console.log('DEV: ' + deviceId + ' reconnected');
-        }
+        LogToConsole(debug,'DEV: ' + deviceId + ' reconnected');
     });
 
     device.on('data', (namespace, payload) => {
@@ -164,7 +161,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                         "switchcmd": nvalue ? "On" : "Off"
                     };
                     
-                    console.log("Sending state to Domoticz");
+                    LogToConsole(true,"Sending state to Domoticz");
                     client.publish('domoticz/in', JSON.stringify(msg));
                 }
               }
@@ -174,41 +171,28 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
 });
 
 meross.on('connected', (deviceId) => {
-    if(debug){
-        console.log(deviceId + ' connected');
-    }
+    LogToConsole(debug,deviceId + ' connected');
 });
 
 meross.on('close', (deviceId, error) => {
-    if(debug){
-        console.log(deviceId + ' closed: ' + error);
-    }
+    LogToConsole(debug,deviceId + ' closed: ' + error);
 });
 
 meross.on('error', (deviceId, error) => {
-    if(debug){
-        console.log(deviceId + ' error: ' + error);
-    }
+    LogToConsole(debug,deviceId + ' error: ' + error);
 });
 
 meross.on('reconnect', (deviceId) => {
-    if(debug){
-        console.log(deviceId + ' reconnected');
-    }
+    LogToConsole(debug,deviceId + ' reconnected');
 });
 
 meross.on('data', (deviceId, payload) => {
-    if(debug){
-        console.log(deviceId + ' data: ' + JSON.stringify(payload));
-    }
-    
+    LogToConsole(debug,deviceId + ' data: ' + JSON.stringify(payload));
 });
 
 meross.connect((error) => {
     if(error){
-        if(debug){
-            console.log('connect error: ' + error);
-        }
+        LogToConsole(debug,'connect error: ' + error);
         meross.connect((error) => { });
     };
 });
@@ -229,11 +213,7 @@ client.on('connect', function () {
                 }
 
                 dev = dev.pop();
-                if(debug){
-                    console.log(obj)
-                    console.log(dev)
-                }
-                console.log("Sending state to Meross");
+                LogToConsole(true,"Sending state to Meross");
                 dev.controlToggleX(channel,obj.nvalue);
             }
         });
@@ -245,7 +225,7 @@ client.on('error',function(){
 
 setInterval(function(){
     var d = new Date();
-    console.log(d.toISOString() + " -- Updating power consumption");
+    LogToConsole(true,"Updating power consumption");
     request(base_url + "/json.htm?type=devices&filter=utility&used=true&order=Name",function(err, result, body){
         if (err) { return console.log(err); }
         var domodevices = JSON.parse(body); //We get all the domoticz devices
