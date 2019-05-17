@@ -133,6 +133,22 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
         var nvalue  = 0;
         var channel = 0;
 
+        if(namespace == "Appliance.Control.Toggle"){
+            nvalue  = payload.toggle.onoff;
+        } else {
+            if(payload.togglex != undefined){
+                if(Array.isArray(payload.togglex)){
+                    channel = payload.togglex[0].channel;
+                    nvalue  = payload.togglex[0].onoff;
+                } else {
+                    channel = payload.togglex.channel;
+                    nvalue  = payload.togglex.onoff;
+                }
+            } else {
+                return;
+            }
+        }
+
         if(Array.isArray(payload.togglex)){
             channel = payload.togglex[0].channel;
             nvalue  = payload.togglex[0].onoff;
@@ -200,7 +216,7 @@ meross.connect((error) => {
 client.on('connect', function () {
     client.subscribe('domoticz/out', function () {
         client.on('message', function(topic, message, packet) {
-        // message is Buffer
+            // message is Buffer
             var channel = 0;
 
             var obj = JSON.parse(message);
@@ -213,12 +229,21 @@ client.on('connect', function () {
                 }
 
                 dev = dev.pop();
-                LogToConsole(true,"Sending state to Meross");
-                dev.controlToggleX(channel,obj.nvalue);
-            }
+                dev.getSystemAbilities((err, res) => { //We check for the right command to send
+                   if( res.ability["Appliance.Control.Toggle"] != undefined){
+                        LogToConsole(true,"Sending state to Meross with Appliance.Control.Toggle");
+                        dev.controlToggle(obj.nvalue);
+                   }
+                   if( res.ability["Appliance.Control.ToggleX"] != undefined){
+                        LogToConsole(true,"Sending state to Meross with Appliance.Control.ToggleX");
+                        dev.controlToggleX(channel,obj.nvalue);
+                   }
+                });
+             }
         });
     });
 });
+
 client.on('error',function(){
     client.reconnect();
 });
