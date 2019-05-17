@@ -90,7 +90,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                     }
                 }
 
-                if(device.dev.deviceType == "mss310" || device.dev.deviceType == "mss210" || device.dev.deviceType.indexOf("mss425") != -1){
+                if(device.dev.deviceType == "mss310" || device.dev.deviceType == "mss210" || device.dev.deviceType.indexOf("mss42") != -1){
                     //We will try to create the switch device
                     var dev = domodevices.result.filter( ob => { return (  ob.Description === (device.dev.uuid+"|"+0) && ob.Type === "Light/Switch" && ob.SubType === "Switch")  } );
                     if(dev && Array.isArray(dev) && dev.length == 0){
@@ -101,7 +101,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                     }
                 }
 
-                if(device.dev.deviceType.indexOf("mss425") != -1){
+                if(device.dev.deviceType.indexOf("mss42") != -1){ //For MSS420 & MSS425
                     var i=0;
                      for(i=1;i<device.dev.channels.length;i++){
                          var dev = domodevices.result.filter( ob => { return (  ob.Description === (device.dev.uuid+"|"+i) && ob.Type === "Light/Switch" && ob.SubType === "Switch")  } );
