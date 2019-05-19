@@ -79,6 +79,10 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
             request(base_url + "/json.htm?type=devices&filter=all&used=true&order=Name",function(err, result, body){ //We get all devices
                 if (err) { return console.log(err); }
                 var domodevices = JSON.parse(body); //We get all the domoticz devices
+                if(domodevices.result == undefined){
+                    domodevices.result = Array(); //If no devices are found.
+                }
+
                 if(device.dev.deviceType == "mss310"){
                     //We will try to create the energy device
                     var dev = domodevices.result.filter( ob => { return (  ob.Description === device.dev.uuid && ob.Type === "General" && ob.SubType === "kWh")  } );
@@ -147,17 +151,6 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
             } else {
                 return;
             }
-        }
-
-        if(Array.isArray(payload.togglex)){
-            channel = payload.togglex[0].channel;
-            nvalue  = payload.togglex[0].onoff;
-        } else {
-            if(payload.togglex == undefined){
-                return;
-            }
-            channel = payload.togglex.channel
-            nvalue  = payload.togglex.onoff;
         }
 
         request(base_url + "/json.htm?type=devices&filter=light&used=true&order=Name",function(err, res, body){
