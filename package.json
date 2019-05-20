@@ -1,0 +1,24 @@
+{
+  "name": "meross2domoticz",
+  "version": "1.0.0",
+  "description": "NodeJS bidge between Meross Cloud IOT and Domoticz",
+  "main": "meross2domoticz.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+          "meross-cloud": "^1.0.0",
+          "mqtt": "^2.18.8",
+          "request": "^2.88.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mangoose002/Meross2Domoticz.git"
+  },
+  "author": "Pierre LENA",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/mangoose002/Meross2Domoticz/issues"
+  },
+  "homepage": "https://github.com/mangoose002/Meross2Domoticz#readme"
+}
