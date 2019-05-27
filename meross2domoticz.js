@@ -110,18 +110,20 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
 
                 if(MultiChannelSupportedDevices.test(device.dev.deviceType) || SingleChannelSupportedDevices.test(device.dev.deviceType)){ //For any devices
                      var i=0;
+                     var DeviceName = "";
                      for(i=0;i<device.dev.channels.length;i++){
+                         if(i==0){
+                             DeviceName = device.dev.devName;
+                         } else {
+                             DeviceName = device.dev.channels[i].devName;
+                         }
                          //We will try to create the switch device
                          var dev = domodevices.result.filter( ob => { return (  ob.Description === (device.dev.uuid+"|"+i) && ob.Type === "Light/Switch" && ob.SubType === "Switch")  } );
                          if(dev && Array.isArray(dev) && dev.length == 0){
                            //No device found, we will create one
-                            CreateDomoDevice(device.dev.channels[i].devName,device.dev.uuid,pTypeGeneralSwitch,sSwitchGeneralSwitch,i);
+                           CreateDomoDevice(DeviceName,device.dev.uuid,pTypeGeneralSwitch,sSwitchGeneralSwitch,i);
                          } else {
-                            if(i==0){
-                                LogToConsole(true,"\tSwitch Device " +  device.dev.devName + " already exists in Domoticz");
-                            } else {
-                                LogToConsole(true,"\tSwitch Device " +  device.dev.channels[i].devName + " already exists in Domoticz");
-                            }
+                           LogToConsole(true,"\tSwitch Device " +  DeviceName + " already exists in Domoticz");
                          }
                      }
                 }
