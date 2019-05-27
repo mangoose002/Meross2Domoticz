@@ -14,10 +14,8 @@ const pTypeGeneralSwitch   = 0xF4; //For Switch Device
 const sSwitchGeneralSwitch = 0x49; //For Switch Device      
 
 /* Regexp for supported or testing devices */
-const SupportedDevices             = RegExp("mss[2|3|4][1|2]"); //All Supported devices
-
-const SingleChannelSupportedDevices = RegExp("mss[2|3]");
-const MultiChannelSupportedDevices  = RegExp("mss42");
+const SingleChannelSupportedDevices = RegExp("mss[1|2|3|7]1");
+const MultiChannelSupportedDevices  = RegExp("mss[4|6]2");
 const EnergyDevices                 = RegExp("mss310");
 
 
