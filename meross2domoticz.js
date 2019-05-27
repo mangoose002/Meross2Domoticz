@@ -5,6 +5,22 @@
 /* jslint esversion: 6 */
 'use strict';
 
+
+/* From domoticz/hardware/hardwaretypes.h */
+const pTypeGeneral       = 0xF3;   //For Energy Device
+const sTypeKwh           = 0x1D;   //For Energy Device
+
+const pTypeGeneralSwitch   = 0xF4; //For Switch Device
+const sSwitchGeneralSwitch = 0x49; //For Switch Device      
+
+/* Regexp for supported or testing devices */
+const SupportedDevices             = RegExp("mss[2|3|4][1|2]"); //All Supported devices
+
+const SingleChannelSupportedDevices = RegExp("mss[2|3]");
+const MultiChannelSupportedDevices  = RegExp("mss42");
+const EnergyDevices                 = RegExp("mss310");
+
+
 const mqtt          = require('mqtt')
 const MerossCloud   = require('meross-cloud');
 const request       = require('request');
@@ -35,14 +51,14 @@ function CreateDomoDevice(name,uuid,type,stype,channel){
         var response = JSON.parse(body);
         if(response.status === "OK"){
             var url = base_url + "/json.htm?type=setused&idx="+ response.idx +"&description=" + uuid + "|" + channel + " &used=true&name=" + name;
-            if(type == 243){ //Only for Energy => No channel & EnergyMeterMode
+            if(type == pTypeGeneral){ //Only for Energy => No channel & EnergyMeterMode
                 var url = base_url + "/json.htm?type=setused&idx="+ response.idx +"&description=" + uuid + " &used=true&name=" + name + "&EnergyMeterMode=1";
             }
 
             request(url ,function(err, result, body) {
                 var response2 = JSON.parse(body);
                 if(response2.status === "OK"){
-                    if(type == 243){
+                    if(type == pTypeGeneral){
                         LogToConsole(true,"\tEnergy Device " + name + " created in Domoticz with id " + response.idx);
                     } else {
                         LogToConsole(true,"\tSwitch Device " + name + " created in Domoticz with id " + response.idx);
@@ -83,35 +99,36 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                     domodevices.result = Array(); //If no devices are found.
                 }
 
-                if(device.dev.deviceType == "mss310"){
+                if(EnergyDevices.test(device.dev.deviceType)){
                     //We will try to create the energy device
                     var dev = domodevices.result.filter( ob => { return (  ob.Description === device.dev.uuid && ob.Type === "General" && ob.SubType === "kWh")  } );
                     if(dev && Array.isArray(dev) && dev.length == 0){
                         //No device found, we will create one.
-                        CreateDomoDevice(device.dev.devName,device.dev.uuid,243,29);
+                        CreateDomoDevice(device.dev.devName,device.dev.uuid,pTypeGeneral,sTypeKwh);
                     } else {
                         LogToConsole(true,"\tEnergy Device " +  device.dev.devName + " already exists in Domoticz");
                     }
                 }
 
-                if(device.dev.deviceType == "mss310" || device.dev.deviceType == "mss210" || device.dev.deviceType.indexOf("mss42") != -1){
+                //if(device.dev.deviceType == "mss310" || device.dev.deviceType == "mss210" || device.dev.deviceType.indexOf("mss42") != -1){
+                if(MultiChannelSupportedDevices.test(device.dev.deviceType) || SingleChannelSupportedDevices.test(device.dev.deviceType)){ //For any devices
                     //We will try to create the switch device
                     var dev = domodevices.result.filter( ob => { return (  ob.Description === (device.dev.uuid+"|"+0) && ob.Type === "Light/Switch" && ob.SubType === "Switch")  } );
                     if(dev && Array.isArray(dev) && dev.length == 0){
                         //No device found, we will create one
-                        CreateDomoDevice(device.dev.devName,device.dev.uuid,244,73,0);
+                        CreateDomoDevice(device.dev.devName,device.dev.uuid,pTypeGeneralSwitch,sSwitchGeneralSwitch,0);
                     } else {
                         LogToConsole(true,"\tSwitch Device " +  device.dev.devName + " already exists in Domoticz");
                     }
                 }
 
-                if(device.dev.deviceType.indexOf("mss42") != -1){ //For MSS420 & MSS425
+                if(MultiChannelSupportedDevices.test(device.dev.deviceType)){ //For Multi channel devices
                     var i=0;
                      for(i=1;i<device.dev.channels.length;i++){
                          var dev = domodevices.result.filter( ob => { return (  ob.Description === (device.dev.uuid+"|"+i) && ob.Type === "Light/Switch" && ob.SubType === "Switch")  } );
                          if(dev && Array.isArray(dev) && dev.length == 0){
                            //No device found, we will create one
-                            CreateDomoDevice(device.dev.channels[i].devName,device.dev.uuid,244,73,i);
+                            CreateDomoDevice(device.dev.channels[i].devName,device.dev.uuid,pTypeGeneralSwitch,sSwitchGeneralSwitch,i);
                          } else {
                             LogToConsole(true,"\tSwitch Device " +  device.dev.channels[i].devName + " already exists in Domoticz");
                          }
@@ -242,13 +259,12 @@ client.on('error',function(){
 });
 
 setInterval(function(){
-    var d = new Date();
     LogToConsole(true,"Updating power consumption");
     request(base_url + "/json.htm?type=devices&filter=utility&used=true&order=Name",function(err, result, body){
         if (err) { return console.log(err); }
         var domodevices = JSON.parse(body); //We get all the domoticz devices
         devices.forEach(function(element){
-            if(element.dev.deviceType == "mss310"){
+            if(EnergyDevices.test(element.dev.deviceType)){
                 element.getControlElectricity((err, res) => {
                     if (err) { return console.log(err); }
                     var dev = domodevices.result.filter( ob => { return (ob.Description == element.dev.uuid && ob.Type === "General") } );
