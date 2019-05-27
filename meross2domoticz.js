@@ -166,23 +166,26 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
         request(base_url + "/json.htm?type=devices&filter=light&used=true&order=Name",function(err, res, body){
               if (err) { return console.log(err); }
               var domodevices = JSON.parse(body);
+              var dev = Array();
+              dev = domodevices.result.filter( ob => { return (ob.Description === (deviceId + "|" + channel) && ob.Type === "Light/Switch" && ob.SubType === "Switch") } ); 
+              if(channel==0 && device.dev.channels.length > 1){
+                dev = domodevices.result.filter( ob => { return ( ob.Description.indexOf(deviceId) != -1 && ob.Type === "Light/Switch" && ob.SubType === "Switch") } ); 
+              }
 
-              var dev = domodevices.result.filter( ob => { return (ob.Description === (deviceId + "|" + channel) && ob.Type === "Light/Switch" && ob.SubType === "Switch") } ); 
-              
               if(dev && Array.isArray(dev) && dev.length > 0){
-                dev = dev.pop();
-                var status = nvalue ? "On" : "Off";
-                if(dev && dev.Status != status){
-
-                    var msg = {
-                        "idx": parseInt(dev.idx),
-                        "command": "switchlight",
-                        "switchcmd": nvalue ? "On" : "Off"
-                    };
+                dev.forEach(function(element) {
+                    var status = nvalue ? "On" : "Off";
+                    if(element && element.Status != status){
+                        var msg = {
+                            "idx": parseInt(element.idx),
+                            "command": "switchlight",
+                            "switchcmd": status
+                        };
                     
-                    LogToConsole(true,"Sending state to Domoticz");
-                    client.publish('domoticz/in', JSON.stringify(msg));
-                }
+                        LogToConsole(true,"Sending state to Domoticz");
+                        client.publish('domoticz/in', JSON.stringify(msg));
+                    }
+                });
               }
         });
     });
