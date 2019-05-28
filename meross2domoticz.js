@@ -168,7 +168,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
               var domodevices = JSON.parse(body);
               var dev = Array();
               dev = domodevices.result.filter( ob => { return (ob.Description === (deviceId + "|" + channel) && ob.Type === "Light/Switch" && ob.SubType === "Switch") } ); 
-              if(channel==0 && device.dev.channels.length > 1){
+              if(channel==0 && device.dev.channels.length > 1){ //For Multichannel
                 dev = domodevices.result.filter( ob => { return ( ob.Description.indexOf(deviceId) != -1 && ob.Type === "Light/Switch" && ob.SubType === "Switch") } ); 
               }
 
@@ -241,7 +241,7 @@ client.on('connect', function () {
                         dev.controlToggle(obj.nvalue);
                    }
                    if( res.ability["Appliance.Control.ToggleX"] != undefined){
-                        LogToConsole(true,"Sending state to Meross with Appliance.Control.ToggleX");
+                        LogToConsole(true,"Sending state to Meross with Appliance.Control.ToggleX for channel " + channel);
                         dev.controlToggleX(channel,obj.nvalue);
                    }
                 });

@@ -15,9 +15,5 @@ Energy devices are automaticaly created using the name provided in the Meross co
 Just need to complete the config.json file with your credentials and MQTT and Domoticz IP/ports <br />
 
 <br />
-P.S. I am not able to test with the MSS210. I assumed it was working exactly the same way as the MSS310 without
-the power measurement. I hope it works this way
-
-P.S. If you were using this script before it supports MSS425. You have two options:<br />
-1 - Delete the switch you previously created and let the script recreate them<br />
-2 - Edit the description of you switches and add |0 at the end of the uuid. It will tell the system to use the channel 0<br />
+P.S. I am not able to test with MSS110/MSS210/MSS520 & MSS710.
+I assumed it was working exactly the same way as the MSS310/MSS425. I hope it works this way
