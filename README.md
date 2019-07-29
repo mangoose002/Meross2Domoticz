@@ -1,3 +1,5 @@
+[![NPM](https://nodei.co/npm/meross2domoticz.png?downloads=true)](https://nodei.co/npm/meross2domoticz/)
+
 # Meross2Domoticz
 NodeJS bridge between Meross IOT and Domoticz<br />
 Works with MSS310/MSS420/MSS425<br />
