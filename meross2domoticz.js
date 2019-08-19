@@ -18,19 +18,18 @@ const SingleChannelSupportedDevices = RegExp("mss[1|2|3|7]1");
 const MultiChannelSupportedDevices  = RegExp("mss[4|6]2");
 const EnergyDevices                 = RegExp("mss310");
 
-
 const mqtt          = require('mqtt')
 const MerossCloud   = require('meross-cloud');
 const request       = require('request');
 const options       = require("./config.json");
-const debug         = false;
+const debug         = true;
 
 var autocreate      = true; 
 var devices         = Array();
 var DummyHardwareId = -1;
 
-const meross = new MerossCloud(options.meross);
-const client  = mqtt.connect('mqtt://' + options.mqtt.server);
+const meross   = new MerossCloud(options.meross);
+const client   = mqtt.connect('mqtt://' + options.mqtt.server);
 const base_url = "http://" + options.domoticz.server + ":" + options.domoticz.port;
 
 function LogToConsole(dbg,message){
@@ -86,48 +85,57 @@ request(base_url + "/json.htm?type=hardware",function(err, result, body){ //We g
 
 meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
     device.on('connected', () => {
-        devices.push(device);
-        LogToConsole(true,device.dev.uuid + " (" + device.dev.devName + ") connected. It is a " + device.dev.deviceType + ". It has " + device.dev.channels.length + " channels");
-        if(autocreate){
-            //We will try to autocreate the devices if not present in the Domoticz configuration
-            request(base_url + "/json.htm?type=devices&filter=all&used=true&order=Name",function(err, result, body){ //We get all devices
-                if (err) { return console.log(err); }
-                var domodevices = JSON.parse(body); //We get all the domoticz devices
-                if(domodevices.result == undefined){
-                    domodevices.result = Array(); //If no devices are found.
-                }
-
-                if(EnergyDevices.test(device.dev.deviceType)){
-                    //We will try to create the energy device
-                    var dev = domodevices.result.filter( ob => { return (  ob.Description === device.dev.uuid && ob.Type === "General" && ob.SubType === "kWh")  } );
-                    if(dev && Array.isArray(dev) && dev.length == 0){
-                        //No device found, we will create one.
-                        CreateDomoDevice(device.dev.devName,device.dev.uuid,pTypeGeneral,sTypeKwh);
-                    } else {
-                        LogToConsole(true,"\tEnergy Device " +  device.dev.devName + " already exists in Domoticz");
+        var found;
+        found = false;
+        devices.forEach(function(element) {
+            if(element.dev.uuid==device.dev.uuid){
+                found = true;
+            }
+        });
+        if(found == false){ // It is a new device
+            devices.push(device);
+            LogToConsole(true,device.dev.uuid + " (" + device.dev.devName + ") connected. It is a " + device.dev.deviceType + ". It has " + device.dev.channels.length + " channel" + ((device.dev.channels.length > 1)?"s":""));
+            if(autocreate){
+                //We will try to autocreate the devices if not present in the Domoticz configuration
+                request(base_url + "/json.htm?type=devices&filter=all&used=true&order=Name",function(err, result, body){ //We get all devices
+                    if (err) { return console.log(err); }
+                    var domodevices = JSON.parse(body); //We get all the domoticz devices
+                    if(domodevices.result == undefined){
+                        domodevices.result = Array(); //If no devices are found.
                     }
-                }
 
-                if(MultiChannelSupportedDevices.test(device.dev.deviceType) || SingleChannelSupportedDevices.test(device.dev.deviceType)){ //For any devices
-                     var i=0;
-                     var DeviceName = "";
-                     for(i=0;i<device.dev.channels.length;i++){
-                         if(i==0){
-                             DeviceName = device.dev.devName;
-                         } else {
-                             DeviceName = device.dev.channels[i].devName;
-                         }
-                         //We will try to create the switch device
-                         var dev = domodevices.result.filter( ob => { return (  ob.Description === (device.dev.uuid+"|"+i) && ob.Type === "Light/Switch" && ob.SubType === "Switch")  } );
-                         if(dev && Array.isArray(dev) && dev.length == 0){
-                           //No device found, we will create one
-                           CreateDomoDevice(DeviceName,device.dev.uuid,pTypeGeneralSwitch,sSwitchGeneralSwitch,i);
-                         } else {
-                           LogToConsole(true,"\tSwitch Device " +  DeviceName + " already exists in Domoticz");
-                         }
-                     }
-                }
-           });
+                    if(EnergyDevices.test(device.dev.deviceType)){
+                        //We will try to create the energy device
+                        var dev = domodevices.result.filter( ob => { return (  ob.Description === device.dev.uuid && ob.Type === "General" && ob.SubType === "kWh")  } );
+                        if(dev && Array.isArray(dev) && dev.length == 0){
+                            //No device found, we will create one.
+                            CreateDomoDevice(device.dev.devName,device.dev.uuid,pTypeGeneral,sTypeKwh);
+                        } else {
+                            LogToConsole(true,"\tEnergy Device " +  device.dev.devName + " already exists in Domoticz");
+                        }
+                    }
+
+                    if(MultiChannelSupportedDevices.test(device.dev.deviceType) || SingleChannelSupportedDevices.test(device.dev.deviceType)){ //For any devices
+                        var i=0;
+                        var DeviceName = "";
+                        for(i=0;i<device.dev.channels.length;i++){
+                            if(i==0){
+                                DeviceName = device.dev.devName;
+                            } else {
+                                DeviceName = device.dev.channels[i].devName;
+                            }
+                            //We will try to create the switch device
+                            var dev = domodevices.result.filter( ob => { return (  ob.Description === (device.dev.uuid+"|"+i) && ob.Type === "Light/Switch" && ob.SubType === "Switch")  } );
+                            if(dev && Array.isArray(dev) && dev.length == 0){
+                                //No device found, we will create one
+                                CreateDomoDevice(DeviceName,device.dev.uuid,pTypeGeneralSwitch,sSwitchGeneralSwitch,i);
+                            } else {
+                                LogToConsole(true,"\tSwitch Device " +  DeviceName + " already exists in Domoticz");
+                            }
+                        }
+                    }
+                });
+            }
         }
     });
 

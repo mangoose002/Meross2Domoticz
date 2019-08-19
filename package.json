@@ -1,6 +1,6 @@
 {
   "name": "meross2domoticz",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "NodeJS bidge between Meross Cloud IOT and Domoticz",
   "main": "meross2domoticz.js",
   "scripts": {
