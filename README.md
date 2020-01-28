@@ -2,8 +2,8 @@
 
 # Meross2Domoticz
 NodeJS bridge between Meross IOT and Domoticz<br />
-Works with MSS310/MSS420/MSS425<br />
-Needs to be tested with MSS110/MSS210/MSS710/MSS620<br />
+Works with MSS210/MSS310/MSS420/MSS425<br />
+Needs to be tested with MSS110/MSS710/MSS620<br />
 
 ## Credits
 It is based on the Meross-Cloud work by Apollon77
@@ -17,5 +17,5 @@ Energy devices are automaticaly created using the name provided in the Meross co
 Just need to complete the config.json file with your credentials and MQTT and Domoticz IP/ports <br />
 
 <br />
-P.S. I am not able to test with MSS110/MSS210/MSS520 & MSS710.
-I assumed it was working exactly the same way as the MSS310/MSS425. I hope it works this way
+P.S. I am not able to test with MSS110/MSS520 & MSS710.
+I assumed it was working exactly the same way as the MSS210/MSS310/MSS425. I hope it works this way
