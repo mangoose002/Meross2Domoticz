@@ -18,7 +18,7 @@ const SingleChannelSupportedDevices = RegExp("mss[1|2|3|7]1");
 const MultiChannelSupportedDevices  = RegExp("mss[4|6]2");
 const EnergyDevices                 = RegExp("mss310");
 
-const mqtt          = require('mqtt')
+const mqtt          = require('mqtt');
 const MerossCloud   = require('meross-cloud');
 const request       = require('request');
 const options       = require("./config.json");
@@ -106,7 +106,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
 
                     if(EnergyDevices.test(device.dev.deviceType)){
                         //We will try to create the energy device
-                        var dev = domodevices.result.filter( ob => { return (  ob.Description === device.dev.uuid && ob.Type === "General" && ob.SubType === "kWh")  } );
+                        var dev = domodevices.result.filter( ob => { return (  ob.Description === device.dev.uuid && ob.Type === "General" && ob.SubType === "kWh");  } );
                         if(dev && Array.isArray(dev) && dev.length == 0){
                             //No device found, we will create one.
                             CreateDomoDevice(device.dev.devName,device.dev.uuid,pTypeGeneral,sTypeKwh);
@@ -125,7 +125,7 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
                                 DeviceName = device.dev.channels[i].devName;
                             }
                             //We will try to create the switch device
-                            var dev = domodevices.result.filter( ob => { return (  ob.Description === (device.dev.uuid+"|"+i) && ob.Type === "Light/Switch" && ob.SubType === "Switch")  } );
+                            var dev = domodevices.result.filter( ob => { return (  ob.Description === (device.dev.uuid+"|"+i) && ob.Type === "Light/Switch" && ob.SubType === "Switch");  } );
                             if(dev && Array.isArray(dev) && dev.length == 0){
                                 //No device found, we will create one
                                 CreateDomoDevice(DeviceName,device.dev.uuid,pTypeGeneralSwitch,sSwitchGeneralSwitch,i);
@@ -175,9 +175,9 @@ meross.on('deviceInitialized', (deviceId, deviceDef, device) => {
               if (err) { return console.log(err); }
               var domodevices = JSON.parse(body);
               var dev = Array();
-              dev = domodevices.result.filter( ob => { return (ob.Description === (deviceId + "|" + channel) && ob.Type === "Light/Switch" && ob.SubType === "Switch") } ); 
+              dev = domodevices.result.filter( ob => { return (ob.Description === (deviceId + "|" + channel) && ob.Type === "Light/Switch" && ob.SubType === "Switch"); } ); 
               if(channel==0 && device.dev.channels.length > 1){ //For Multichannel
-                dev = domodevices.result.filter( ob => { return ( ob.Description.indexOf(deviceId) != -1 && ob.Type === "Light/Switch" && ob.SubType === "Switch") } ); 
+                dev = domodevices.result.filter( ob => { return ( ob.Description.indexOf(deviceId) != -1 && ob.Type === "Light/Switch" && ob.SubType === "Switch"); } ); 
               }
 
               if(dev && Array.isArray(dev) && dev.length > 0){
@@ -224,7 +224,7 @@ meross.connect((error) => {
     if(error){
         LogToConsole(debug,'connect error: ' + error);
         meross.connect((error) => { });
-    };
+    }
 });
 
 client.on('connect', function () {
@@ -234,7 +234,7 @@ client.on('connect', function () {
             var channel = 0;
 
             var obj = JSON.parse(message);
-            var dev = devices.filter( ob => { return (String(obj.description).indexOf(ob.dev.uuid)!=-1 && obj.dtype === "Light/Switch" && obj.stype === "Switch") });
+            var dev = devices.filter( ob => { return (String(obj.description).indexOf(ob.dev.uuid)!=-1 && obj.dtype === "Light/Switch" && obj.stype === "Switch"); });
 
             if(dev && Array.isArray(dev) && dev.length > 0){
                 var settings = obj.description.split("|");
@@ -271,7 +271,7 @@ setInterval(function(){
             if(EnergyDevices.test(element.dev.deviceType)){
                 element.getControlElectricity((err, res) => {
                     if (err) { return console.log(err); }
-                    var dev = domodevices.result.filter( ob => { return (ob.Description == element.dev.uuid && ob.Type === "General") } );
+                    var dev = domodevices.result.filter( ob => { return (ob.Description == element.dev.uuid && ob.Type === "General"); } );
                     if(dev && Array.isArray(dev) && dev.length > 0){
                         dev = dev.pop();
                         if(dev){
@@ -287,5 +287,5 @@ setInterval(function(){
             }
         });
     });
-}, 60000);
+}, options.powerUpdate*1000);
 
