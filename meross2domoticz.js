@@ -71,13 +71,12 @@ request(base_url + "/json.htm?type=hardware",function(err, result, body){ //We g
     if (err) { return console.log(err); }
     var domohardware = JSON.parse(body); //We get all hardware
     if (domohardware.result == undefined){
-         autocreate = false;
+        autocreate = false;
         LogToConsole(debug,"No dummy hardware found. Autocreate disabled");
         return;
     }
 
     var hardware = domohardware.result.filter( ob => { return ob.Type == 15; });
-
     if(hardware && Array.isArray(hardware) && hardware.length > 0){
         hardware = hardware.pop();
         DummyHardwareId = hardware.idx;
