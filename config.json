@@ -10,5 +10,6 @@
     "mqtt": {
         "server": "localhost",
         "port": 1883
-    }
+    },
+    "powerUpdate": 60
 }
