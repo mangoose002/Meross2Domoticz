@@ -70,6 +70,12 @@ function CreateDomoDevice(name,uuid,type,stype,channel){
 request(base_url + "/json.htm?type=hardware",function(err, result, body){ //We get all hardware
     if (err) { return console.log(err); }
     var domohardware = JSON.parse(body); //We get all hardware
+    if (domohardware.result == undefined){
+         autocreate = false;
+        LogToConsole(debug,"No dummy hardware found. Autocreate disabled");
+        return;
+    }
+
     var hardware = domohardware.result.filter( ob => { return ob.Type == 15; });
 
     if(hardware && Array.isArray(hardware) && hardware.length > 0){
