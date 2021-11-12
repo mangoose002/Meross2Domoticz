@@ -3,6 +3,7 @@
 # Meross2Domoticz
 NodeJS bridge between Meross IOT and Domoticz<br />
 Works with MSS210/MSS310/MSS420/MSS425<br />
+Works with MSS5501/MS1120d/MS1430/MSG100 (Thanks to StephaneM60)<br />
 Needs to be tested with MSS110/MSS710/MSS620<br />
 
 ## Credits
