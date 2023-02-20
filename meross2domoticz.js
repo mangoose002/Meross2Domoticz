@@ -546,7 +546,7 @@ setInterval(function () {
         if (err) { return console.log(err); }
         var domodevices = JSON.parse(body); //We get all the domoticz devices
         devices.forEach(function (element) {
-            if (EnergyDevices.test(element.dev.deviceType)) {
+            if (EnergyDevices.test(element.dev.deviceType) && element.dev.onlineStatus == 1) {
                 element.getControlElectricity((err, res) => {
                     if (err) { return console.log(err); }
                     var dev = domodevices.result.filter(ob => { return (ob.Description == element.dev.uuid && ob.Type === "General"); });
